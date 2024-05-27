@@ -15,7 +15,7 @@ impl StateMachine for LightSwitch {
     type Transition = ();
 
     fn next_state(starting_state: &bool, t: &()) -> bool {
-        todo!("Exercise 1")
+       !starting_state
     }
 }
 
@@ -24,12 +24,13 @@ impl StateMachine for LightSwitch {
 pub struct WeirdSwitchMachine;
 
 /// The state is now two switches instead of one so we use a struct.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct TwoSwitches {
     first_switch: bool,
     second_switch: bool,
 }
 
+#[derive(PartialEq)]
 /// Now there are two switches so we need a proper type for the transition.
 pub enum Toggle {
     FirstSwitch,
@@ -42,7 +43,16 @@ impl StateMachine for WeirdSwitchMachine {
     type Transition = Toggle;
 
     fn next_state(starting_state: &TwoSwitches, t: &Toggle) -> TwoSwitches {
-        todo!("Exercise 2")
+        let mut new_state = starting_state.clone();
+        if t == &Toggle::FirstSwitch {
+            if new_state.first_switch == true{
+                new_state.second_switch = false;
+            }
+            new_state.first_switch = !starting_state.first_switch;
+        } else{
+            new_state.second_switch = !starting_state.second_switch;
+        }
+        new_state
     }
 }
 

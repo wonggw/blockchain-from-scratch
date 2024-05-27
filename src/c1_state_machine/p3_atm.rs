@@ -58,7 +58,13 @@ impl StateMachine for Atm {
     type Transition = Action;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        todo!("Exercise 4")
+        match (starting_state, t) {
+            (self.., Action::SwipeCard(pin)) => {
+                Auth::Authenticating(pin)
+            }
+
+            _ => panic!("Invalid action"),
+        }
     }
 }
 

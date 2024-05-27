@@ -35,12 +35,74 @@ pub enum ClothesAction {
     Dry,
 }
 
+
 impl StateMachine for ClothesMachine {
     type State = ClothesState;
     type Transition = ClothesAction;
 
     fn next_state(starting_state: &ClothesState, t: &ClothesAction) -> ClothesState {
-        todo!("Exercise 3")
+        match (starting_state, t) {
+            (ClothesState::Wet(life), ClothesAction::Dry) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Clean(life - 1)
+            },
+            (ClothesState::Dirty(life), ClothesAction::Wash) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Wet(life - 1)
+            },
+            (ClothesState::Clean(life), ClothesAction::Wear) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Dirty(life - 1)
+            },
+            (ClothesState::Clean(life), ClothesAction::Dry) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Clean(life - 1)
+            },
+            (ClothesState::Dirty(life), ClothesAction::Dry) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Dirty(life - 1)
+            },
+            (ClothesState::Clean(life), ClothesAction::Wash) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Wet(life - 1)
+            },
+            (ClothesState::Wet(life), ClothesAction::Wash) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Wet(life - 1)
+            },
+            (ClothesState::Dirty(life), ClothesAction::Wear) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Dirty(life - 1)
+            },
+            (ClothesState::Wet(life), ClothesAction::Wear) => {
+                if life - 1 == 0{
+                    return ClothesState::Tattered
+                }
+                ClothesState::Dirty(life - 1)
+            },
+            (ClothesState::Tattered, _) => {
+                ClothesState::Tattered
+            },
+            // (ClothesState::Dry, ClothesAction::Wash) => ClothesState::Wet,
+            // define more conditions and responses based on your needs
+            _ => panic!("Invalid action"), // or define a default outcome
+        }
     }
 }
 
