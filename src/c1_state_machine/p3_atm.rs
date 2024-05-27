@@ -14,6 +14,19 @@ pub enum Key {
     Enter,
 }
 
+
+impl Key {
+    fn as_usize(&self) -> u64 {
+        match *self {
+            Key::One => 1,
+            Key::Two => 2,
+            Key::Three => 3,
+            Key::Four => 4,
+            Key::Enter => 5,
+        }
+    }
+}
+
 /// Something you can do to the ATM
 pub enum Action {
     /// Swipe your card at the ATM. The attached value is the hash of the pin
@@ -58,12 +71,72 @@ impl StateMachine for Atm {
     type Transition = Action;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        match (starting_state, t) {
-            (self.., Action::SwipeCard(pin)) => {
-                Auth::Authenticating(pin)
-            }
+        match t {
+            Action::SwipeCard(pin_hash) => Atm {
+                cash_inside: starting_state.cash_inside,
+                expected_pin_hash: Auth::Authenticating(*pin_hash),
+                keystroke_register: starting_state.keystroke_register.clone(),
+            },
+            Action::PressKey(key) => match starting_state.expected_pin_hash {
+                Auth::Authenticating(pin) => match key{
+                    Key::Enter => {
+                        let mut expected_pin_hash = Auth::Waiting;
+                        let hash_pin = crate::hash(&starting_state.keystroke_register);
+                        if pin == hash_pin{
+                            expected_pin_hash = Auth::Authenticated;
+                        }
+                        Atm {
+                            cash_inside: starting_state.cash_inside,
+                            expected_pin_hash: expected_pin_hash,
+                            keystroke_register: Vec::new(),
+                        }
+                    },
+                    _ => Atm {
+                        cash_inside: starting_state.cash_inside,
+                        expected_pin_hash: starting_state.expected_pin_hash.clone(),
+                        keystroke_register: {
+                            let mut keystroke_register = starting_state.keystroke_register.clone();
+                            let _key = key.clone();
+                            keystroke_register.push(_key);
+                            keystroke_register
+                        },
+                    },
+                },
+                Auth::Authenticated => match key{
+                    Key::Enter => {
+                        let mut value = 0;
+                        for keystroke in starting_state.keystroke_register.clone(){
+                            value = value*10 + keystroke.as_usize();
+                        }
 
-            _ => panic!("Invalid action"),
+                        let mut amount = starting_state.cash_inside;
+                        if value<=starting_state.cash_inside{
+                            amount = starting_state.cash_inside - value;
+                        }
+                        Atm {
+                            cash_inside: amount,
+                            expected_pin_hash: Auth::Waiting,
+                            keystroke_register: Vec::new(),
+                        }
+                    },
+                    _ => Atm {
+                        cash_inside: starting_state.cash_inside,
+                        expected_pin_hash: starting_state.expected_pin_hash.clone(),
+                        keystroke_register: {
+                            let mut keystroke_register = starting_state.keystroke_register.clone();
+                            let _key = key.clone();
+                            keystroke_register.push(_key);
+                            keystroke_register
+                        },
+                    }
+                },
+                _ => Atm{
+                    cash_inside: starting_state.cash_inside,
+                    expected_pin_hash: starting_state.expected_pin_hash.clone(),
+                    keystroke_register: starting_state.keystroke_register.clone(),
+                },
+            },
+
         }
     }
 }
